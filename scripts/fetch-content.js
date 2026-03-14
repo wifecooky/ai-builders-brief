@@ -43,7 +43,8 @@ const SUPADATA_BASE = 'https://api.supadata.ai/v1';
 // remove user removals. This way users can customize without losing defaults.
 async function loadConfig() {
   // Load the default sources that ship with the skill
-  const scriptDir = new URL('.', import.meta.url).pathname;
+  // decodeURIComponent handles spaces and special chars in directory names
+  const scriptDir = decodeURIComponent(new URL('.', import.meta.url).pathname);
   const defaultSourcesPath = join(scriptDir, '..', 'config', 'default-sources.json');
   const defaultSources = JSON.parse(await readFile(defaultSourcesPath, 'utf-8'));
 
@@ -114,7 +115,7 @@ async function saveState(state) {
 // Supadata API endpoints:
 //   GET /v1/youtube/channel/videos?id=<handle>&type=video — returns { video_ids: [] }
 //   GET /v1/youtube/playlist/videos?id=<playlistId>       — returns { video_ids: [] }
-//   GET /v1/youtube/transcript?url=<videoId>&text=true     — returns { content, lang, availableLangs }
+//   GET /v1/youtube/transcript?url=<full youtube URL>&text=true — returns { content, lang, availableLangs }
 //   GET /v1/youtube/video?id=<videoId>                     — returns video metadata (title, etc.)
 
 async function fetchYouTubeContent(podcasts, state, apiKey, isFirstRun) {
@@ -141,7 +142,8 @@ async function fetchYouTubeContent(podcasts, state, apiKey, isFirstRun) {
       }
 
       const videosData = await videosRes.json();
-      const videoIds = videosData.video_ids || [];
+      // Supadata returns "videoIds" (camelCase), not "video_ids"
+      const videoIds = videosData.videoIds || videosData.video_ids || [];
 
       // Step 2: Filter to videos we haven't processed yet
       const newVideoIds = videoIds.filter(id => !state.processedVideos[id]);
@@ -171,8 +173,10 @@ async function fetchYouTubeContent(podcasts, state, apiKey, isFirstRun) {
           }
 
           // Get the transcript as plain text
+          // Supadata needs a full YouTube URL, not just the video ID
+          const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
           const transcriptRes = await fetch(
-            `${SUPADATA_BASE}/youtube/transcript?url=${videoId}&text=true`,
+            `${SUPADATA_BASE}/youtube/transcript?url=${encodeURIComponent(videoUrl)}&text=true`,
             { headers: { 'x-api-key': apiKey } }
           );
 
