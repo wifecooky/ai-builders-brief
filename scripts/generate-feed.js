@@ -95,19 +95,17 @@ async function fetchYouTubeContent(podcasts, apiKey, errors) {
     }
   }
 
-  // Phase 2: Pick the 1 most recent video from the last 24 hours
-  // Sort by date (newest first), take the first one within cutoff
+  // Phase 2: Pick the 1 most recent video and fetch its transcript
+  // Only 1 per day to keep token costs low for users
   const sorted = allCandidates
     .filter(v => v.publishedAt)
     .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
 
   let selected = sorted.find(v => new Date(v.publishedAt) >= cutoff);
-  // If nothing in the last 24h, take the most recent one anyway
   if (!selected && sorted.length > 0) selected = sorted[0];
-
   if (!selected) return [];
 
-  // Phase 3: Fetch transcript for the selected video only
+  // Fetch transcript centrally so users don't need a Supadata key
   try {
     const videoUrl = `https://www.youtube.com/watch?v=${selected.videoId}`;
     const transcriptRes = await fetch(

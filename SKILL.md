@@ -313,12 +313,10 @@ The prompt files to use:
 
 ### Step 4a: Remix Podcast Content
 
-**CRITICAL — Process ONE episode at a time, not all at once.**
-
-The `podcasts` array contains objects like this:
+The `feed-podcasts.json` contains 1 podcast episode with its full transcript
+already included. The `podcasts` array has one object like this:
 ```json
 {
-  "source": "podcast",
   "name": "Latent Space",        ← use THIS as the podcast name
   "title": "Episode Title Here", ← use THIS as the episode title
   "url": "https://youtube.com/watch?v=xxx", ← use THIS as the link
@@ -326,18 +324,13 @@ The `podcasts` array contains objects like this:
 }
 ```
 
-Each object is self-contained. The `name`, `title`, `url`, and `transcript` all
-belong to the SAME episode. Do NOT mix them up across episodes.
+1. Read the podcast object
+2. Check if the episode is AI-relevant (read the title). If not, skip it.
+3. If relevant, summarize its `transcript` using the summarize-podcast prompt
+4. Use the `name`, `title`, and `url` from the JSON — NOT from the transcript
 
-Process each episode one at a time:
-1. Read ONE podcast object from the array
-2. Note its `name` (e.g. "Latent Space") and `title` and `url`
-3. Summarize ONLY its `transcript` using the summarize-podcast prompt
-4. In your output, use the `name` and `url` from THIS object — not from any other
-5. Move to the next podcast object. Repeat.
-
-**NEVER** guess which podcast a transcript belongs to by reading the transcript
-content. Always use the `name` field from the JSON object.
+**NEVER** guess which podcast a transcript belongs to by reading the transcript.
+Always use the `name` field from the JSON object.
 
 ### Step 4b: Remix X/Twitter Content
 
