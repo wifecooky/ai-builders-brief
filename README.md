@@ -6,6 +6,10 @@
   <img src="assets/cover.svg" alt="AI Builders Brief" width="100%">
 </p>
 
+<p align="center">
+  <code>npx skills add wifecooky/ai-builders-brief</code>
+</p>
+
 # AI Builders Brief
 
 An AI agent skill that monitors 25+ top AI builders on X/Twitter, 6 leading podcasts,

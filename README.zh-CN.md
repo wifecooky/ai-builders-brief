@@ -6,6 +6,10 @@
   <img src="assets/cover.svg" alt="AI Builders Brief" width="100%">
 </p>
 
+<p align="center">
+  <code>npx skills add wifecooky/ai-builders-brief</code>
+</p>
+
 # AI Builders Brief
 
 **你的每日 AI 行业情报，来自真正在造东西的人。**
