@@ -25,18 +25,18 @@ WhatsApp, etc.) with:
 
 ### One-line install (recommended)
 ```bash
-npx skills add wen-novarca/ai-builders-brief
+npx skills add wifecooky/ai-builders-brief
 ```
 Works with Claude Code, Cursor, Codex, and other agents.
 
 ### Manual install
 ```bash
 # Claude Code
-git clone https://github.com/wen-novarca/ai-builders-brief.git ~/.claude/skills/ai-builders-brief
+git clone https://github.com/wifecooky/ai-builders-brief.git ~/.claude/skills/ai-builders-brief
 cd ~/.claude/skills/ai-builders-brief/scripts && npm install
 
 # OpenClaw
-git clone https://github.com/wen-novarca/ai-builders-brief.git ~/skills/ai-builders-brief
+git clone https://github.com/wifecooky/ai-builders-brief.git ~/skills/ai-builders-brief
 cd ~/skills/ai-builders-brief/scripts && npm install
 ```
 

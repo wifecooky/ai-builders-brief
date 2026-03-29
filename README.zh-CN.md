@@ -23,18 +23,18 @@
 
 ### 一键安装（推荐）
 ```bash
-npx skills add wen-novarca/ai-builders-brief
+npx skills add wifecooky/ai-builders-brief
 ```
 支持 Claude Code、Cursor、Codex 等各类 agent。
 
 ### 手动安装
 ```bash
 # Claude Code
-git clone https://github.com/wen-novarca/ai-builders-brief.git ~/.claude/skills/ai-builders-brief
+git clone https://github.com/wifecooky/ai-builders-brief.git ~/.claude/skills/ai-builders-brief
 cd ~/.claude/skills/ai-builders-brief/scripts && npm install
 
 # OpenClaw
-git clone https://github.com/wen-novarca/ai-builders-brief.git ~/skills/ai-builders-brief
+git clone https://github.com/wifecooky/ai-builders-brief.git ~/skills/ai-builders-brief
 cd ~/skills/ai-builders-brief/scripts && npm install
 ```
 
