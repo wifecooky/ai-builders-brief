@@ -1,8 +1,12 @@
 **English** | [中文](README.zh-CN.md) | [日本語](README.ja.md)
 
-# AI Builders Brief
+> **Credits:** Original project by [Zara Zhang](https://x.com/zarazhangrui) ([follow-builders](https://github.com/zarazhangrui/follow-builders)). Licensed under MIT.
 
-**Your daily AI industry intelligence, curated from the people actually building things.**
+<p align="center">
+  <img src="assets/cover.svg" alt="AI Builders Brief" width="100%">
+</p>
+
+# AI Builders Brief
 
 An AI agent skill that monitors 25+ top AI builders on X/Twitter, 6 leading podcasts,
 and official company blogs — then delivers a curated brief in your preferred language
@@ -122,11 +126,6 @@ That's it. No API keys needed. All content is fetched centrally and updated dail
 - If you use Telegram/email delivery, those keys are stored locally in `~/.follow-builders/.env`
 - The skill only reads public content (public blog posts, public YouTube videos, public X posts)
 - Your configuration, preferences, and reading history stay on your machine
-
-## Credits
-
-Created by [Zara Zhang](https://x.com/zarazhangrui) ([zarazhangrui](https://github.com/zarazhangrui)).
-Original project: [follow-builders](https://github.com/zarazhangrui/follow-builders).
 
 ## License
 

@@ -1,5 +1,11 @@
 [English](README.md) | **中文** | [日本語](README.ja.md)
 
+> **Credits:** 原始项目由 [Zara Zhang](https://x.com/zarazhangrui)（[follow-builders](https://github.com/zarazhangrui/follow-builders)）创建。MIT 许可。
+
+<p align="center">
+  <img src="assets/cover.svg" alt="AI Builders Brief" width="100%">
+</p>
+
 # AI Builders Brief
 
 **你的每日 AI 行业情报，来自真正在造东西的人。**
@@ -116,11 +122,6 @@ Agent 会询问你：
 - 如果你使用 Telegram/邮件推送，相关 key 仅存储在本地 `~/.follow-builders/.env`
 - 技能只读取公开内容（公开的博客文章、YouTube 视频和 X 帖子）
 - 你的配置、偏好和阅读记录都保留在你自己的设备上
-
-## Credits
-
-由 [Zara Zhang](https://x.com/zarazhangrui)（[zarazhangrui](https://github.com/zarazhangrui)）创建。
-原始项目：[follow-builders](https://github.com/zarazhangrui/follow-builders)。
 
 ## 许可证
 
