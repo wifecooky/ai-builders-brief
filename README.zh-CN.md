@@ -21,19 +21,19 @@
 
 ## 快速开始
 
-### SkillHub（推荐）
+### 一键安装（推荐）
 ```bash
-npx @skill-hub/cli install ai-builders-brief
+npx skills add wen-novarca/ai-builders-brief
 ```
+支持 Claude Code、Cursor、Codex 等各类 agent。
 
-### Claude Code
+### 手动安装
 ```bash
+# Claude Code
 git clone https://github.com/wen-novarca/ai-builders-brief.git ~/.claude/skills/ai-builders-brief
 cd ~/.claude/skills/ai-builders-brief/scripts && npm install
-```
 
-### OpenClaw
-```bash
+# OpenClaw
 git clone https://github.com/wen-novarca/ai-builders-brief.git ~/skills/ai-builders-brief
 cd ~/skills/ai-builders-brief/scripts && npm install
 ```

@@ -23,19 +23,19 @@ WhatsApp, etc.) with:
 
 ## Quick Start
 
-### SkillHub (recommended)
+### One-line install (recommended)
 ```bash
-npx @skill-hub/cli install ai-builders-brief
+npx skills add wen-novarca/ai-builders-brief
 ```
+Works with Claude Code, Cursor, Codex, and other agents.
 
-### Claude Code
+### Manual install
 ```bash
+# Claude Code
 git clone https://github.com/wen-novarca/ai-builders-brief.git ~/.claude/skills/ai-builders-brief
 cd ~/.claude/skills/ai-builders-brief/scripts && npm install
-```
 
-### OpenClaw
-```bash
+# OpenClaw
 git clone https://github.com/wen-novarca/ai-builders-brief.git ~/skills/ai-builders-brief
 cd ~/skills/ai-builders-brief/scripts && npm install
 ```
