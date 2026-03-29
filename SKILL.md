@@ -1,6 +1,6 @@
 ---
 name: ai-builders-brief
-description: "Daily AI industry digest: curates 25+ top AI builders on X/Twitter, 6 podcasts, and official blogs (Anthropic, Claude) into one brief. Summaries in English, Chinese, or bilingual. Delivers via Telegram, email, or in-chat. Zero API keys needed. Use when user wants AI news, builder updates, podcast summaries, or invokes /ai."
+description: "Daily AI industry digest: curates 25+ top AI builders on X/Twitter, 6 podcasts, and official blogs (Anthropic, Claude) into one brief. Summaries in English, Chinese, Japanese, or bilingual. Delivers via Telegram, email, or in-chat. Zero API keys needed. Use when user wants AI news, builder updates, podcast summaries, or invokes /ai. | AI業界デイリーブリーフ：X/Twitter上のトップAIビルダー25名以上、ポッドキャスト6番組、公式ブログを1つの要約に凝縮。日本語・英語・中国語対応。APIキー不要。"
 ---
 
 # AI Builders Brief — Follow Builders, Not Influencers
