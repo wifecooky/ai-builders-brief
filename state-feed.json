@@ -171,15 +171,10 @@
   },
   "seenVideos": {
     "KSCCKCz2x04": 1774422033428,
-    "g45Alfg7diw": 1774508754359
+    "g45Alfg7diw": 1774508754359,
+    "SUjA25ijcNs": 1775025419633
   },
   "seenArticles": {
-    "https://www.anthropic.com/engineering/infrastructure-noise": 1774412061502,
-    "https://www.anthropic.com/engineering/harness-design-long-running-apps": 1774412063447,
-    "https://www.anthropic.com/engineering/eval-awareness-browsecomp": 1774412065158,
-    "https://claude.com/blog/claude-builds-visuals": 1774412065947,
-    "https://claude.com/blog/how-enterprises-are-building-ai-agents-in-2026": 1774412066505,
-    "https://claude.com/blog/improving-frontend-design-through-skills": 1774412067076,
     "https://www.anthropic.com/engineering/claude-code-auto-mode": 1774508756395
   }
 }
