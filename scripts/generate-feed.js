@@ -10,7 +10,7 @@
 // URLs in state-feed.json so content is never repeated across runs.
 //
 // Usage: node generate-feed.js [--tweets-only | --podcasts-only | --blogs-only]
-// Env vars needed: X_BEARER_TOKEN, SUPADATA_API_KEY
+// Env vars needed: SOCIAVAULT_API_KEY, SUPADATA_API_KEY
 // ============================================================================
 
 import { readFile, writeFile } from 'fs/promises';
@@ -20,7 +20,7 @@ import { join } from 'path';
 // -- Constants ---------------------------------------------------------------
 
 const SUPADATA_BASE = 'https://api.supadata.ai/v1';
-const X_API_BASE = 'https://api.x.com/2';
+const SOCIAVAULT_BASE = 'https://api.sociavault.com/v1/scrape/twitter';
 const TWEET_LOOKBACK_HOURS = 24;
 const PODCAST_LOOKBACK_HOURS = 72;
 const BLOG_LOOKBACK_HOURS = 72;
@@ -38,15 +38,16 @@ const STATE_PATH = join(SCRIPT_DIR, '..', 'state-feed.json');
 
 async function loadState() {
   if (!existsSync(STATE_PATH)) {
-    return { seenTweets: {}, seenVideos: {}, seenArticles: {} };
+    return { seenTweets: {}, seenVideos: {}, seenArticles: {}, userIds: {} };
   }
   try {
     const state = JSON.parse(await readFile(STATE_PATH, 'utf-8'));
-    // Ensure seenArticles exists for older state files
+    // Ensure newer keys exist for older state files
     if (!state.seenArticles) state.seenArticles = {};
+    if (!state.userIds) state.userIds = {};
     return state;
   } catch {
-    return { seenTweets: {}, seenVideos: {}, seenArticles: {} };
+    return { seenTweets: {}, seenVideos: {}, seenArticles: {}, userIds: {} };
   }
 }
 
@@ -188,60 +189,83 @@ async function fetchYouTubeContent(podcasts, apiKey, state, errors) {
   }
 }
 
-// -- X/Twitter Fetching (Official API v2) ------------------------------------
+// -- X/Twitter Fetching (SociaVault API) -------------------------------------
 
-async function fetchXContent(xAccounts, bearerToken, state, errors) {
-  const results = [];
-  const cutoff = new Date(Date.now() - TWEET_LOOKBACK_HOURS * 60 * 60 * 1000);
+/**
+ * Resolves a Twitter handle to its numeric rest_id via SociaVault profile
+ * endpoint. Uses state.userIds as a persistent cache to save API credits.
+ * @param {string} handle - Twitter handle (without @)
+ * @param {string} apiKey - SociaVault API key
+ * @param {object} state  - Persistent state with userIds cache
+ * @returns {Promise<{restId: string, description: string}|null>}
+ */
+async function resolveUserId(handle, apiKey, state) {
+  // Return cached rest_id if available
+  if (state.userIds?.[handle.toLowerCase()]) {
+    return state.userIds[handle.toLowerCase()];
+  }
 
-  // Batch lookup all user IDs (1 API call)
-  const handles = xAccounts.map(a => a.handle);
-  let userMap = {};
+  const res = await fetch(
+    `${SOCIAVAULT_BASE}/profile?handle=${encodeURIComponent(handle)}`,
+    { headers: { 'X-API-Key': apiKey } }
+  );
 
-  for (let i = 0; i < handles.length; i += 100) {
-    const batch = handles.slice(i, i + 100);
-    try {
-      const res = await fetch(
-        `${X_API_BASE}/users/by?usernames=${batch.join(',')}&user.fields=name,description`,
-        { headers: { 'Authorization': `Bearer ${bearerToken}` } }
-      );
+  if (!res.ok) return null;
 
-      if (!res.ok) {
-        errors.push(`X API: User lookup failed: HTTP ${res.status}`);
-        continue;
-      }
+  const json = await res.json();
+  const restId = json.data?.rest_id;
+  if (!restId) return null;
 
-      const data = await res.json();
-      for (const user of (data.data || [])) {
-        userMap[user.username.toLowerCase()] = {
-          id: user.id,
-          name: user.name,
-          description: user.description || ''
-        };
-      }
-      if (data.errors) {
-        for (const err of data.errors) {
-          errors.push(`X API: User not found: ${err.value || err.detail}`);
-        }
-      }
-    } catch (err) {
-      errors.push(`X API: User lookup error: ${err.message}`);
+  const description = json.data?.legacy?.description || '';
+
+  // Persist to cache
+  if (!state.userIds) state.userIds = {};
+  state.userIds[handle.toLowerCase()] = { restId, description };
+
+  return { restId, description };
+}
+
+/**
+ * Extracts tweet objects from the SociaVault user-tweets-all GraphQL response.
+ * The response nests tweets deeply inside timeline instructions / entries.
+ * @param {object} json - Raw SociaVault response JSON
+ * @returns {Array<object>} Flat array of tweet result objects
+ */
+function extractTweetsFromResponse(json) {
+  const tweets = [];
+  const instructions = json.data?.result?.timeline?.instructions || [];
+
+  for (const instruction of instructions) {
+    const entries = instruction.entries || [];
+    for (const entry of entries) {
+      const result = entry.content?.itemContent?.tweet_results?.result;
+      if (result?.legacy) tweets.push(result);
     }
   }
 
-  // Fetch recent tweets per user (max 3, exclude retweets/replies)
-  for (const account of xAccounts) {
-    const userData = userMap[account.handle.toLowerCase()];
-    if (!userData) continue;
+  return tweets;
+}
 
+async function fetchXContent(xAccounts, apiKey, state, errors) {
+  const results = [];
+  const cutoff = new Date(Date.now() - TWEET_LOOKBACK_HOURS * 60 * 60 * 1000);
+  if (!state.userIds) state.userIds = {};
+
+  for (const account of xAccounts) {
     try {
+      // Step 1: Resolve handle -> rest_id (cached when possible)
+      const userInfo = await resolveUserId(account.handle, apiKey, state);
+      if (!userInfo) {
+        errors.push(`X API: Could not resolve user @${account.handle}`);
+        continue;
+      }
+
+      await new Promise(r => setTimeout(r, 200));
+
+      // Step 2: Fetch chronological tweets
       const res = await fetch(
-        `${X_API_BASE}/users/${userData.id}/tweets?` +
-        `max_results=5` +       // fetch 5, then filter to 3 new ones
-        `&tweet.fields=created_at,public_metrics,referenced_tweets,note_tweet` +
-        `&exclude=retweets,replies` +
-        `&start_time=${cutoff.toISOString()}`,
-        { headers: { 'Authorization': `Bearer ${bearerToken}` } }
+        `${SOCIAVAULT_BASE}/user-tweets-all?user_id=${userInfo.restId}`,
+        { headers: { 'X-API-Key': apiKey } }
       );
 
       if (!res.ok) {
@@ -254,29 +278,40 @@ async function fetchXContent(xAccounts, bearerToken, state, errors) {
       }
 
       const data = await res.json();
-      const allTweets = data.data || [];
+      const allTweets = extractTweetsFromResponse(data);
 
-      // Filter out already-seen tweets, cap at 3
+      // Filter: within cutoff, not already seen, cap at MAX_TWEETS_PER_USER
       const newTweets = [];
       for (const t of allTweets) {
-        if (state.seenTweets[t.id]) continue; // dedup
+        const tweetId = t.rest_id;
+        if (!tweetId) continue;
+        if (state.seenTweets[tweetId]) continue; // dedup
+
+        const createdAt = t.legacy.created_at;
+        if (createdAt && new Date(createdAt) < cutoff) continue;
+
         if (newTweets.length >= MAX_TWEETS_PER_USER) break;
 
+        // note_tweet holds untruncated text for long tweets (>280 chars)
+        const fullText = t.note_tweet?.note_tweet_results?.result?.text
+          || t.legacy.full_text || '';
+
         newTweets.push({
-          id: t.id,
-          // note_tweet.text has the full untruncated text for long tweets (>280 chars)
-          text: t.note_tweet?.text || t.text,
-          createdAt: t.created_at,
-          url: `https://x.com/${account.handle}/status/${t.id}`,
-          likes: t.public_metrics?.like_count || 0,
-          retweets: t.public_metrics?.retweet_count || 0,
-          replies: t.public_metrics?.reply_count || 0,
-          isQuote: t.referenced_tweets?.some(r => r.type === 'quoted') || false,
-          quotedTweetId: t.referenced_tweets?.find(r => r.type === 'quoted')?.id || null
+          id: tweetId,
+          text: fullText,
+          createdAt: createdAt || null,
+          url: `https://x.com/${account.handle}/status/${tweetId}`,
+          likes: t.legacy.favorite_count || 0,
+          retweets: t.legacy.retweet_count || 0,
+          replies: t.legacy.reply_count || 0,
+          isQuote: t.legacy.is_quote_status || false,
+          quotedTweetId: t.legacy.is_quote_status
+            ? (t.legacy.quoted_status_id_str || null)
+            : null
         });
 
         // Mark as seen
-        state.seenTweets[t.id] = Date.now();
+        state.seenTweets[tweetId] = Date.now();
       }
 
       if (newTweets.length === 0) continue;
@@ -285,7 +320,7 @@ async function fetchXContent(xAccounts, bearerToken, state, errors) {
         source: 'x',
         name: account.name,
         handle: account.handle,
-        bio: userData.description,
+        bio: userInfo.description,
         tweets: newTweets
       });
 
@@ -620,15 +655,15 @@ async function main() {
   const runPodcasts = podcastsOnly || (!tweetsOnly && !blogsOnly);
   const runBlogs = blogsOnly || (!tweetsOnly && !podcastsOnly);
 
-  const xBearerToken = process.env.X_BEARER_TOKEN;
+  const sociavaultKey = process.env.SOCIAVAULT_API_KEY;
   const supadataKey = process.env.SUPADATA_API_KEY;
 
   if (runPodcasts && !supadataKey) {
     console.error('SUPADATA_API_KEY not set');
     process.exit(1);
   }
-  if (runTweets && !xBearerToken) {
-    console.error('X_BEARER_TOKEN not set');
+  if (runTweets && !sociavaultKey) {
+    console.error('SOCIAVAULT_API_KEY not set');
     process.exit(1);
   }
 
@@ -639,7 +674,7 @@ async function main() {
   // Fetch tweets
   if (runTweets) {
     console.error('Fetching X/Twitter content...');
-    const xContent = await fetchXContent(sources.x_accounts, xBearerToken, state, errors);
+    const xContent = await fetchXContent(sources.x_accounts, sociavaultKey, state, errors);
     console.error(`  Found ${xContent.length} builders with new tweets`);
 
     const totalTweets = xContent.reduce((sum, a) => sum + a.tweets.length, 0);
